@@ -1,10 +1,16 @@
+if (!process.env.NODE_ENV) {
+  require("dotenv").config();
+}
+
 const express = require("express");
 const app = express();
-const port = 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+app.use("/", require("./controllers/animeController"));
+app.use("/", require("./controllers/mangaController"));
+
+module.exports = app;
+
+// test
