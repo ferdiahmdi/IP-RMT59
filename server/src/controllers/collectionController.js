@@ -1,31 +1,57 @@
 const express = require("express");
 const router = express.Router();
-const { Collection } = require("../../models");
+const { Collection, User, Entry } = require("../../models");
 const authMiddleware = require("../middlewares/authMiddleware");
 
 // Create a new collection
-router.post("/collections", authMiddleware, async (req, res, next) => {
+router.post("/collections", async (req, res, next) => {
   try {
     const { name, userId } = req.body;
-    const collection = await Collection.create({
-      name: name,
-      userId: userId
-    });
+
+    // Check if the user exists
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw {
+        statusCode: 404,
+        message: "User not found"
+      };
+    }
+
+    const collection = await Collection.create({ name, userId });
+
     res.status(201).json(collection);
   } catch (error) {
-    error.statusCode = 400;
     next(error);
   }
 });
 
 // Get all collections for a user
-router.get("/collections/:userId", authMiddleware, async (req, res, next) => {
+router.get("/collections/:userId", async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const collections = await Collection.findAll({ where: { userId } });
-    res.json(collections);
+
+    // Check if the user exists
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw {
+        statusCode: 404,
+        message: "User not found"
+      };
+    }
+
+    const collections = await Collection.findAll({
+      where: { userId },
+      include: Entry
+    });
+    if (!collections) {
+      throw {
+        statusCode: 404,
+        message: "Collections not found"
+      };
+    }
+
+    res.status(200).json(collections);
   } catch (error) {
-    error.statusCode = 400;
     next(error);
   }
 });

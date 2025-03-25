@@ -19,12 +19,10 @@ module.exports = {
       },
       progress: {
         type: Sequelize.INTEGER,
-        allowNull: false,
         defaultValue: 0
       },
       completed: {
         type: Sequelize.BOOLEAN,
-        allowNull: false,
         defaultValue: false
       },
       collectionId: {

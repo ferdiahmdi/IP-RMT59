@@ -28,12 +28,26 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: {
             args: true,
             msg: "Collection name cannot be empty."
+          },
+          notNull: {
+            args: true,
+            msg: "Collection name cannot be empty."
           }
         }
       },
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        validate: {
+          isInt: {
+            args: true,
+            msg: "User ID must be an integer."
+          },
+          notNull: {
+            args: true,
+            msg: "User ID cannot be empty."
+          }
+        },
         references: {
           model: "Users",
           key: "id"
