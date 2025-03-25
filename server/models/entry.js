@@ -19,16 +19,42 @@ module.exports = (sequelize, DataTypes) => {
     {
       title: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            args: true,
+            msg: "Title cannot be empty."
+          }
+        }
       },
       type: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            args: true,
+            msg: "Type cannot be empty."
+          },
+          isIn: {
+            args: [["anime", "manga"]],
+            msg: "Type must be either 'anime' or 'manga'."
+          }
+        }
       },
       progress: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 0
+        defaultValue: 0,
+        validate: {
+          isInt: {
+            args: true,
+            msg: "Progress must be an integer."
+          },
+          min: {
+            args: 0,
+            msg: "Progress must be at least 0."
+          }
+        }
       },
       completed: {
         type: DataTypes.BOOLEAN,
@@ -47,7 +73,13 @@ module.exports = (sequelize, DataTypes) => {
       },
       jikanId: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            args: true,
+            msg: "Jikan ID cannot be empty."
+          }
+        }
       }
     },
     {

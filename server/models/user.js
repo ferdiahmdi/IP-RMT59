@@ -20,16 +20,38 @@ module.exports = (sequelize, DataTypes) => {
       email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
+        validate: {
+          isEmail: {
+            args: true,
+            msg: "Please enter a valid email address."
+          },
+          notEmpty: {
+            args: true,
+            msg: "Email address cannot be empty."
+          }
+        }
       },
       name: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            args: true,
+            msg: "Name cannot be empty."
+          }
+        }
       },
       googleId: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
+        validate: {
+          notEmpty: {
+            args: true,
+            msg: "Google ID cannot be empty."
+          }
+        }
       }
     },
     {
