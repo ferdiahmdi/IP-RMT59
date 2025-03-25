@@ -12,7 +12,7 @@ module.exports = {
       email: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique
+        unique: true
       },
       name: {
         type: Sequelize.STRING,
@@ -21,7 +21,7 @@ module.exports = {
       googleId: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique
+        unique: true
       },
       createdAt: {
         allowNull: false,
