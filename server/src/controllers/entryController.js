@@ -3,6 +3,8 @@ const router = express.Router();
 const { Entry, Collection, User } = require("../../models");
 const authMiddleware = require("../middlewares/authMiddleware");
 const baseURL = require("../helpers/http");
+const { GoogleGenAI } = require("@google/genai");
+const geminiApiKey = process.env.GEMINI_API_KEY;
 
 // Create a new entry
 router.post("/entries", async (req, res, next) => {
@@ -93,6 +95,66 @@ router.get("/collections/:userId/:collectionId", async (req, res, next) => {
     next(error);
   }
 });
+
+// Generate recommendations from Google GenAI model by providing entries that are fetched from a collection in the database
+router.get(
+  "/collections/:userId/:collectionId/recommendations",
+  async (req, res, next) => {
+    try {
+      const { userId, collectionId } = req.params;
+
+      const user = await User.findByPk(userId);
+      if (!user) {
+        throw {
+          statusCode: 404,
+          message: "User not found"
+        };
+      }
+      const collection = await Collection.findByPk(collectionId, {
+        include: Entry
+      });
+      if (!collection) {
+        throw {
+          statusCode: 404,
+          message: "Collection not found"
+        };
+      }
+
+      const entries = collection.Entries.map((entry) => {
+        return {
+          title: entry.title,
+          type: entry.type
+        };
+      });
+
+      // console.log(entries);
+
+      const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: `
+        Can you recommend me some more anime or manga that I would like based of the following array of objects?
+        Then, provide the recommendations in the format of an array of objects.
+        Give me only 5 recommendations. Then only put title and type in the object. The type must only be either "anime" or "manga". If the title have both types, choose "anime". If the data I provide includes both types, try to also include both types in your response. 
+        There must not be any title - type combination that is already in the data I provide.
+        Only output the array of objects in the response.
+
+        ${JSON.stringify(entries)}
+        `
+      });
+
+      const output = JSON.parse(
+        response.text.replace("```json", "").replace("```", "")
+      );
+      console.log(output);
+
+      res.status(200).json({ result: output });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 // Update an entry
 router.put("/entries/:collectionId/:entryId", async (req, res, next) => {
