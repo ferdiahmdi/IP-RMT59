@@ -1,3 +1,6 @@
 node_modules
 .env
 clientSecretDev.json
+credentials
+coverage
+dist

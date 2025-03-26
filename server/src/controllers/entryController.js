@@ -120,6 +120,13 @@ router.get(
         };
       }
 
+      if (collection.Entries.length === 0) {
+        throw {
+          statusCode: 404,
+          message: "Collection has no entries"
+        };
+      }
+
       const entries = collection.Entries.map((entry) => {
         return {
           title: entry.title,
