@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const { Entry, Collection, User } = require("../../models");
-const authMiddleware = require("../middlewares/authMiddleware");
+const { authMiddleware } = require("../middlewares/authMiddleware");
 const baseURL = require("../helpers/http");
 const { GoogleGenAI } = require("@google/genai");
 const geminiApiKey = process.env.GEMINI_API_KEY;
 
 // Create a new entry
-router.post("/entries", async (req, res, next) => {
+router.post("/entries", authMiddleware, async (req, res, next) => {
   try {
     const { type, progress, completed, collectionId, jikanId } = req.body;
 
@@ -67,38 +67,43 @@ router.post("/entries", async (req, res, next) => {
 });
 
 // Get all entries for a collection
-router.get("/collections/:userId/:collectionId", async (req, res, next) => {
-  try {
-    const { userId, collectionId } = req.params;
+router.get(
+  "/collections/:userId/:collectionId",
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { userId, collectionId } = req.params;
 
-    const user = await User.findByPk(userId);
-    if (!user) {
-      throw {
-        statusCode: 404,
-        message: "User not found"
-      };
+      const user = await User.findByPk(userId);
+      if (!user) {
+        throw {
+          statusCode: 404,
+          message: "User not found"
+        };
+      }
+
+      // Check if the collection exists
+      const collection = await Collection.findByPk(+collectionId);
+      if (!collection) {
+        throw {
+          statusCode: 404,
+          message: "Collection not found"
+        };
+      }
+
+      const entries = await Entry.findAll({ where: { collectionId } });
+
+      res.status(200).json(entries);
+    } catch (error) {
+      next(error);
     }
-
-    // Check if the collection exists
-    const collection = await Collection.findByPk(+collectionId);
-    if (!collection) {
-      throw {
-        statusCode: 404,
-        message: "Collection not found"
-      };
-    }
-
-    const entries = await Entry.findAll({ where: { collectionId } });
-
-    res.status(200).json(entries);
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 // Generate recommendations from Google GenAI model by providing entries that are fetched from a collection in the database
 router.get(
   "/collections/:userId/:collectionId/recommendations",
+  authMiddleware,
   async (req, res, next) => {
     try {
       const { userId, collectionId } = req.params;
@@ -164,94 +169,102 @@ router.get(
 );
 
 // Update an entry
-router.put("/entries/:collectionId/:entryId", async (req, res, next) => {
-  try {
-    const { entryId, collectionId } = req.params;
-    let { progress, completed } = req.body;
+router.put(
+  "/entries/:collectionId/:entryId",
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { entryId, collectionId } = req.params;
+      let { progress, completed } = req.body;
 
-    // Convert completed to boolean
-    if (completed === "true") {
-      completed = true;
+      // Convert completed to boolean
+      if (completed === "true") {
+        completed = true;
+      }
+      if (completed === "false") {
+        completed = false;
+      }
+
+      // Convert progress to number
+      progress = +progress;
+
+      if (isNaN(+progress)) {
+        throw {
+          statusCode: 400,
+          message: "Progress must be a number"
+        };
+      }
+
+      if (typeof completed !== "boolean") {
+        throw {
+          statusCode: 400,
+          message: "Completed must be a boolean"
+        };
+      }
+
+      const collection = await Collection.findByPk(collectionId);
+      if (!collection) {
+        throw {
+          statusCode: 404,
+          message: "Collection not found"
+        };
+      }
+
+      const entry = await Entry.findByPk(entryId);
+      if (!entry) {
+        throw {
+          statusCode: 404,
+          message: "Entry not found"
+        };
+      } else {
+        await Entry.update(
+          {
+            progress: progress,
+            completed: completed
+          },
+          { where: { id: entryId } }
+        );
+      }
+
+      const updatedEntry = await Entry.findByPk(entryId);
+
+      res.status(200).json(updatedEntry);
+    } catch (error) {
+      next(error);
     }
-    if (completed === "false") {
-      completed = false;
-    }
-
-    // Convert progress to number
-    progress = +progress;
-
-    if (isNaN(+progress)) {
-      throw {
-        statusCode: 400,
-        message: "Progress must be a number"
-      };
-    }
-
-    if (typeof completed !== "boolean") {
-      throw {
-        statusCode: 400,
-        message: "Completed must be a boolean"
-      };
-    }
-
-    const collection = await Collection.findByPk(collectionId);
-    if (!collection) {
-      throw {
-        statusCode: 404,
-        message: "Collection not found"
-      };
-    }
-
-    const entry = await Entry.findByPk(entryId);
-    if (!entry) {
-      throw {
-        statusCode: 404,
-        message: "Entry not found"
-      };
-    } else {
-      await Entry.update(
-        {
-          progress: progress,
-          completed: completed
-        },
-        { where: { id: entryId } }
-      );
-    }
-
-    const updatedEntry = await Entry.findByPk(entryId);
-
-    res.status(200).json(updatedEntry);
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 // Delete an entry
-router.delete("/entries/:collectionId/:entryId", async (req, res, next) => {
-  try {
-    const { collectionId, entryId } = req.params;
+router.delete(
+  "/entries/:collectionId/:entryId",
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { collectionId, entryId } = req.params;
 
-    const collection = await Collection.findByPk(collectionId);
-    if (!collection) {
-      throw {
-        statusCode: 404,
-        message: "Collection not found"
-      };
+      const collection = await Collection.findByPk(collectionId);
+      if (!collection) {
+        throw {
+          statusCode: 404,
+          message: "Collection not found"
+        };
+      }
+
+      const entry = await Entry.findByPk(entryId);
+      if (!entry) {
+        throw {
+          statusCode: 404,
+          message: "Entry not found"
+        };
+      }
+      await entry.destroy();
+
+      res.status(200).json({ message: "Entry deleted" });
+    } catch (error) {
+      next(error);
     }
-
-    const entry = await Entry.findByPk(entryId);
-    if (!entry) {
-      throw {
-        statusCode: 404,
-        message: "Entry not found"
-      };
-    }
-    await entry.destroy();
-
-    res.status(200).json({ message: "Entry deleted" });
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 module.exports = router;

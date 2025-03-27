@@ -1,25 +1,25 @@
-const { OAuth2Client } = require("google-auth-library");
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const jwt = require("jsonwebtoken");
+const JWT_SECRET = process.env.JWT_SECRET;
 
-async function authMiddleware(req, res, next) {
-  const token = req.headers.authorization?.split(" ")[1];
+function generateToken(payload) {
+  return jwt.sign(payload, JWT_SECRET);
+}
 
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
+function authMiddleware(req, res, next) {
+  const [bearer, token] = req.headers.authorization.split(" ");
+
+  if (!token || bearer !== "Bearer") {
+    throw { statusCode: 401, message: "Unauthorized" };
   }
 
   try {
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID
-    });
-    const payload = ticket.getPayload();
-    req.user = payload;
+    // Verify JWT
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded; // Attach decoded user info to the request
     next();
   } catch (error) {
-    error.statusCode = 401;
     next(error);
   }
 }
 
-module.exports = authMiddleware;
+module.exports = { authMiddleware, generateToken };

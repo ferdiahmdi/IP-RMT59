@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const { Collection, User, Entry } = require("../../models");
-const authMiddleware = require("../middlewares/authMiddleware");
+const { authMiddleware } = require("../middlewares/authMiddleware");
 
 // Create a new collection
-router.post("/collections", async (req, res, next) => {
+router.post("/collections", authMiddleware, async (req, res, next) => {
   try {
     const { name, userId } = req.body;
 
@@ -26,7 +26,7 @@ router.post("/collections", async (req, res, next) => {
 });
 
 // Get all collections for a user
-router.get("/collections/:userId", async (req, res, next) => {
+router.get("/collections/:userId", authMiddleware, async (req, res, next) => {
   try {
     const { userId } = req.params;
 

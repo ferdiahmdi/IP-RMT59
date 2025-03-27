@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const baseURL = require("../helpers/http");
-const authMiddleware = require("../middlewares/authMiddleware");
+const { authMiddleware } = require("../middlewares/authMiddleware");
 
 // Get manga recommendations from Jikan API and search if there is a query "q"
-router.get("/mangas", async (req, res, next) => {
+router.get("/mangas", authMiddleware, async (req, res, next) => {
   try {
     const query = req.query.q || null;
     const page = +req.query.page || 1;
@@ -25,7 +25,7 @@ router.get("/mangas", async (req, res, next) => {
     const data = response.data;
 
     console.log("paginations", data.pagination);
-    res.json(data.data);
+    res.json(data);
   } catch (error) {
     if (error.response) {
       error.statusCode = error.response.status;
@@ -39,7 +39,7 @@ router.get("/mangas", async (req, res, next) => {
 });
 
 // Get manga details from Jikan API by id
-router.get("/mangas/:id", async (req, res, next) => {
+router.get("/mangas/:id", authMiddleware, async (req, res, next) => {
   try {
     const id = req.params.id;
 
@@ -47,7 +47,7 @@ router.get("/mangas/:id", async (req, res, next) => {
 
     const data = response.data;
 
-    res.json(data.data);
+    res.json(data);
   } catch (error) {
     if (error.response) {
       error.statusCode = error.response.status;
