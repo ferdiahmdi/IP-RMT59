@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import baseURL from "../helpers/http";
-import { Link } from "react-router";
 import AnimeCard from "../components/AnimeCard";
 
 const Home = () => {
@@ -12,23 +11,30 @@ const Home = () => {
       const res = await baseURL.get("/animes", {
         headers: {
           authorization: localStorage.getItem("authorization")
+        },
+        params: {
+          q: search
         }
       });
       const data = res.data;
+      console.log(data);
 
       const uniqueTitles = new Set(); // Define the Set outside the filter function
 
-      const entries = data.data
-        .flatMap((item) => item.entry)
-        .filter((entry) => {
-          if (uniqueTitles.has(entry.title)) {
-            return false; // Skip if the title already exists in the Set
-          }
-          uniqueTitles.add(entry.title); // Add the title to the Set
-          return true; // Include the entry in the filtered array
-        });
+      const entries = !search
+        ? data.data
+            .flatMap((item) => item.entry)
+            .filter((entry) => {
+              if (uniqueTitles.has(entry.title)) {
+                return false; // Skip if the title already exists in the Set
+              }
+              uniqueTitles.add(entry.title); // Add the title to the Set
+              return true; // Include the entry in the filtered array
+            })
+        : data.data.map((entry) => {
+            return entry;
+          });
 
-      // console.log(res.data);
       setAnimes(entries);
     } catch (error) {
       console.error(error);
@@ -40,9 +46,9 @@ const Home = () => {
   }, []);
 
   const handleSearchSubmit = (event) => {
-    event.preventDefault(); // Prevent page reload
-    console.log("Search submitted:", searchQuery); // Replace with your handler function
-    // Call your search handler here with `searchQuery`
+    event.preventDefault();
+    console.log("Search submitted:", searchQuery);
+    getAnimes(searchQuery);
   };
 
   // console.log(animes);
@@ -67,7 +73,6 @@ const Home = () => {
         </div>
       </form>
 
-      {/* Anime Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {animes.map((anime, index) => (
           <AnimeCard key={index} anime={anime} />

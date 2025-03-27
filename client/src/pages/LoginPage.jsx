@@ -10,9 +10,12 @@ const LoginPage = () => {
       const res = await baseURL.post("/login", {
         token: response.credential
       });
-      // console.log(res.data);
+      console.log(res.data);
+      const { access_token, id } = res.data;
 
-      localStorage.setItem("authorization", `Bearer ${res.data}`);
+      localStorage.setItem("authorization", `Bearer ${access_token}`);
+      localStorage.setItem("userId", id);
+
       navigate("/home");
     } catch (error) {
       console.error(error);

@@ -43,7 +43,7 @@ const Navbar = ({ toggleTheme, theme }) => {
       <div className="navbar-center flex">
         <ul className="menu menu-horizontal px-1">
           <li>
-            <Link to="/home">Recommendations</Link>
+            <Link to="/home">Browse</Link>
           </li>
           <li>
             <Link to="/collections">My Collections</Link>

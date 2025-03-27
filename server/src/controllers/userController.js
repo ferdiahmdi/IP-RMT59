@@ -4,6 +4,7 @@ const { User } = require("../../models");
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const { OAuth2Client } = require("google-auth-library");
 const { generateToken } = require("../middlewares/authMiddleware");
+const jwt = require("jsonwebtoken");
 
 // Handle user login
 router.post("/login", async (req, res, next) => {
@@ -19,7 +20,7 @@ router.post("/login", async (req, res, next) => {
     });
     const payload = ticket.getPayload();
 
-    const user = await User.findOrCreate({
+    const [user, created] = await User.findOrCreate({
       where: {
         email: payload.email
       },
@@ -29,14 +30,15 @@ router.post("/login", async (req, res, next) => {
         googleId: payload.sub
       }
     });
-    // console.log(user, "<<< user");
+    console.log(user, "<<< user");
+    console.log(created, "<<< created");
 
-    const access_token = generateToken({
-      id: user.id
-    });
+    const { id } = user;
+    const access_token = generateToken({ id });
 
-    // console.log(access_token, "<<< access_token");
-    res.status(200).json(access_token);
+    const decoded = jwt.verify(access_token, process.env.JWT_SECRET);
+
+    res.status(200).json({ access_token, id: decoded.id });
   } catch (error) {
     next(error);
   }

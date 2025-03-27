@@ -6,6 +6,9 @@ function generateToken(payload) {
 }
 
 function authMiddleware(req, res, next) {
+  if (!req.headers.authorization)
+    throw { statusCode: 401, message: "Unauthorized" };
+
   const [bearer, token] = req.headers.authorization.split(" ");
 
   if (!token || bearer !== "Bearer") {

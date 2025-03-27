@@ -83,7 +83,9 @@ router.get(
       }
 
       // Check if the collection exists
-      const collection = await Collection.findByPk(+collectionId);
+      const collection = await Collection.findOne({
+        where: { id: +collectionId }
+      });
       if (!collection) {
         throw {
           statusCode: 404,

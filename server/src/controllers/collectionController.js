@@ -41,7 +41,8 @@ router.get("/collections/:userId", authMiddleware, async (req, res, next) => {
 
     const collections = await Collection.findAll({
       where: { userId },
-      include: Entry
+      include: Entry,
+      order: [["id", "asc"]]
     });
     if (!collections) {
       throw {
