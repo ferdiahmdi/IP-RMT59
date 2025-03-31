@@ -1,9 +1,11 @@
 import React from "react";
-import { Link } from "react-router";
 
-const AnimeCard = ({ anime }) => {
+const AnimeCard = ({ anime, handleClick }) => {
   return (
-    <Link className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+    <button
+      className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
+      onClick={handleClick}
+    >
       <figure>
         <img
           src={anime.images.webp.image_url || "https://via.placeholder.com/150"}
@@ -15,7 +17,7 @@ const AnimeCard = ({ anime }) => {
         <h2 className="card-title">{anime.title || "Untitled"}</h2>
         <p className="text-sm text-gray-500"></p>
       </div>
-    </Link>
+    </button>
   );
 };
 

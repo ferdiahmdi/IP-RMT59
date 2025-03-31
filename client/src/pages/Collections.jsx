@@ -2,13 +2,20 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import baseURL from "../helpers/http";
 import CollectionCard from "../components/CollectionCard";
 import AddCollection from "../components/AddCollection";
+import Entries from "./Entries";
 
 const Collections = () => {
   const [collections, setCollections] = useState([]);
   const [newCollectionName, setNewCollectionName] = useState("");
-  const ref = useRef(null);
 
-  const userId = localStorage.getItem("userId"); // Assuming userId is stored in localStorage
+  // const { collectionId, userId } = useParams();
+  const [collectionId, setCollectionId] = useState(null);
+  const [entries, setEntries] = useState([]);
+
+  const ref = useRef(null);
+  const ref2 = useRef(null);
+
+  const userId = localStorage.getItem("userId");
 
   // Fetch collections for the user
   const fetchCollections = useCallback(async () => {
@@ -20,9 +27,9 @@ const Collections = () => {
       });
 
       const data = res.data;
-      console.log(data);
+      // console.log(data);
 
-      setCollections(res.data);
+      setCollections(data);
     } catch (error) {
       console.error(error);
     }
@@ -53,15 +60,37 @@ const Collections = () => {
     }
   };
 
+  const fetchEntries = useCallback(async () => {
+    try {
+      const res = await baseURL.get(`/collections/${userId}/${collectionId} `, {
+        headers: {
+          authorization: localStorage.getItem("authorization")
+        }
+      });
+
+      const data = res.data;
+      // console.log(data);
+
+      setEntries(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [collectionId, userId]);
+
   useEffect(() => {
     fetchCollections();
-  }, [fetchCollections]);
+    fetchEntries();
+  }, [fetchCollections, fetchEntries]);
 
-  const openModal = () => {
-    ref.current.showModal();
+  const openModal = async (ref, id) => {
+    setCollectionId(id);
+    await fetchEntries().then(() => {
+      ref.current.showModal();
+    });
+    // ref.current.showModal();
   };
 
-  const closeModal = () => {
+  const closeModal = (ref) => {
     ref.current.close();
   };
 
@@ -70,20 +99,30 @@ const Collections = () => {
       <AddCollection
         onSubmit={createCollection}
         ref={ref}
-        handleClose={closeModal}
+        handleClose={() => closeModal(ref)}
         setName={setNewCollectionName}
+      />
+      <Entries
+        ref={ref2}
+        handleClose={() => closeModal(ref2)}
+        entries={entries}
+        collection={collections.find((element) => element.id === collectionId)}
       />
 
       <h1 className="text-3xl font-bold mb-6 text-center">My Collections</h1>
 
-      <button onClick={openModal} className="btn btn-neutral">
+      <button onClick={() => openModal(ref)} className="btn btn-neutral">
         Create New Collection
       </button>
 
       {collections.length !== 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-2">
           {collections.map((collection) => (
-            <CollectionCard key={collection.id} collection={collection} />
+            <CollectionCard
+              key={collection.id}
+              collection={collection}
+              handleClick={() => openModal(ref2, collection.id)}
+            />
           ))}
         </div>
       ) : (

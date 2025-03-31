@@ -40,16 +40,20 @@ const Navbar = ({ toggleTheme, theme }) => {
           Otakollect
         </Link>
       </div>
-      <div className="navbar-center flex">
-        <ul className="menu menu-horizontal px-1">
-          <li>
-            <Link to="/home">Browse</Link>
-          </li>
-          <li>
-            <Link to="/collections">My Collections</Link>
-          </li>
-        </ul>
-      </div>
+      {!authorization ? (
+        ""
+      ) : (
+        <div className="navbar-center flex">
+          <ul className="menu menu-horizontal px-1">
+            <li>
+              <Link to="/home">Browse</Link>
+            </li>
+            <li>
+              <Link to="/collections">My Collections</Link>
+            </li>
+          </ul>
+        </div>
+      )}
       <div className="navbar-end">
         {loginStatus}
         <ThemeController toggleTheme={toggleTheme} theme={theme} />
