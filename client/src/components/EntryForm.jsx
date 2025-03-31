@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import baseURL from "../helpers/http";
 
-const EntryForm = ({ ref, handleClose, type, title, malId, entry }) => {
+const EntryForm = ({
+  ref,
+  handleClose,
+  handleEdit,
+  type,
+  title,
+  malId,
+  entry
+}) => {
   const [collectionNames, setCollectionNames] = useState([]);
   const [progress, setProgress] = useState(0);
   const [completed, setCompleted] = useState(false);
@@ -30,9 +38,16 @@ const EntryForm = ({ ref, handleClose, type, title, malId, entry }) => {
 
   useEffect(() => {
     getCollections();
-  }, [getCollections]);
+    if (entry) {
+      setProgress(entry.progress);
+      setCompleted(entry.completed);
+      setCollectionId(entry.collectionId);
+    }
+  }, [getCollections, entry]);
 
   // console.log(collectionNames);
+
+  // console.log(progress, completed, collectionId);
 
   return (
     <dialog ref={ref} className="modal">
@@ -47,23 +62,28 @@ const EntryForm = ({ ref, handleClose, type, title, malId, entry }) => {
             //   collectionId,
             //   jikanId: malId
             // });
-            const res = await baseURL.post(
-              "/entries",
-              {
-                type,
-                progress,
-                completed,
-                collectionId,
-                jikanId: malId
-              },
-              {
-                headers: {
-                  authorization: localStorage.getItem("authorization")
+            if (entry) {
+              handleEdit({ id: entry.id, progress, completed, collectionId });
+            } else {
+              const res = await baseURL.post(
+                "/entries",
+                {
+                  type,
+                  progress,
+                  completed,
+                  collectionId,
+                  jikanId: malId
+                },
+                {
+                  headers: {
+                    authorization: localStorage.getItem("authorization")
+                  }
                 }
-              }
-            );
-            const data = res.data;
-            console.log(data);
+              );
+              const data = res.data;
+              console.log(data);
+            }
+
             handleClose("add");
           } catch (error) {
             console.error(error);
@@ -85,7 +105,8 @@ const EntryForm = ({ ref, handleClose, type, title, malId, entry }) => {
             placeholder="Progress"
             className="input input-bordered mb-4"
             min={0}
-            value={entry ? entry.progress : progress}
+            // defaultValue={entry ? entry.progress : progress}
+            value={progress}
             onChange={(event) => setProgress(event.target.value)}
           />
         </fieldset>
@@ -95,7 +116,8 @@ const EntryForm = ({ ref, handleClose, type, title, malId, entry }) => {
           <select
             className="select mb-4"
             onChange={(event) => setCompleted(event.target.value)}
-            value={entry ? entry.completed : false}
+            // defaultValue={entry ? entry.completed : false}
+            value={completed}
           >
             <option value={false}>In Progress</option>
             <option value={true}>Completed</option>
@@ -108,6 +130,7 @@ const EntryForm = ({ ref, handleClose, type, title, malId, entry }) => {
             className="select mb-4"
             onChange={(event) => setCollectionId(+event.target.value)}
             value={entry ? entry.collectionId : collectionId}
+            // value={collectionId}
             disabled={entry ? true : false}
           >
             {collectionNames.map((collection) => (
@@ -119,7 +142,7 @@ const EntryForm = ({ ref, handleClose, type, title, malId, entry }) => {
         </fieldset>
         <div className="modal-action">
           <button type="submit" className="btn btn-primary">
-            Add to Collection
+            {entry ? "Edit Entry" : "Add to Collection"}
           </button>
           <button type="button" onClick={handleClose} className="btn">
             Cancel

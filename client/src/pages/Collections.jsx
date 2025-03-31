@@ -77,6 +77,29 @@ const Collections = () => {
     }
   }, [collectionId, userId]);
 
+  const handleEdit = async ({ id, progress, completed, collectionId }) => {
+    try {
+      const res = await baseURL.put(
+        `/entries/${collectionId}/${id}`,
+        {
+          progress,
+          completed
+        },
+        {
+          headers: {
+            authorization: localStorage.getItem("authorization")
+          }
+        }
+      );
+      const data = res.data;
+      console.log(data);
+
+      fetchEntries();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchCollections();
     fetchEntries();
@@ -107,6 +130,7 @@ const Collections = () => {
         handleClose={() => closeModal(ref2)}
         entries={entries}
         collection={collections.find((element) => element.id === collectionId)}
+        handleEdit={handleEdit}
       />
 
       <h1 className="text-3xl font-bold mb-6 text-center">My Collections</h1>

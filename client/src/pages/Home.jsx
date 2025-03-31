@@ -7,6 +7,8 @@ const Home = () => {
   const [animes, setAnimes] = useState([]);
   const [searchQuery, setSearchQuery] = useState(""); // State for the search query
 
+  const [loading, setLoading] = useState(false);
+
   const [selectedTitle, setSelectedTitle] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   const [type, setType] = useState("anime");
@@ -15,6 +17,7 @@ const Home = () => {
 
   const getAnimes = async (search) => {
     try {
+      setLoading(true);
       const res = await baseURL.get("/animes", {
         headers: {
           authorization: localStorage.getItem("authorization")
@@ -45,11 +48,14 @@ const Home = () => {
       setAnimes(entries);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const getMangas = async (search) => {
     try {
+      setLoading(true);
       const res = await baseURL.get("/mangas", {
         headers: {
           authorization: localStorage.getItem("authorization")
@@ -80,6 +86,8 @@ const Home = () => {
       setAnimes(entries);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -109,7 +117,7 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-base-200">
+    <div className="min-h-screen p-6 bg-base-200 flex flex-col justify-start items-center">
       <EntryForm
         ref={ref}
         handleClose={closeModal}
@@ -179,18 +187,22 @@ const Home = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {animes.map((anime, index) => (
-          <AnimeCard
-            key={index}
-            anime={anime}
-            handleClick={() => {
-              setSelectedTitle(anime.title);
-              openModal(anime.mal_id);
-            }}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <span className="loading loading-dots loading-xl" />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {animes.map((anime, index) => (
+            <AnimeCard
+              key={index}
+              anime={anime}
+              handleClick={() => {
+                setSelectedTitle(anime.title);
+                openModal(anime.mal_id);
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

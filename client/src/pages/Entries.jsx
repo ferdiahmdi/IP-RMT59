@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import EntryForm from "../components/EntryForm";
 
-const Entries = ({ ref, handleClose, entries, collection }) => {
+const Entries = ({ ref, handleClose, entries, collection, handleEdit }) => {
   const [editEntry, setEditEntry] = useState(null); // State to hold the entry being edited
   const editRef = useRef(null); // Ref for the edit modal
 
@@ -102,6 +102,7 @@ const Entries = ({ ref, handleClose, entries, collection }) => {
       <EntryForm
         ref={editRef}
         handleClose={handleEditModalClose} // Switch back to Entries modal
+        handleEdit={handleEdit}
         entry={editEntry} // Pass the entry to be edited
       />
     </>
