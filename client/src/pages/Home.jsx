@@ -1,108 +1,45 @@
 import { useEffect, useRef, useState } from "react";
-import baseURL from "../helpers/http";
 import AnimeCard from "../components/AnimeCard";
 import EntryForm from "../components/EntryForm";
+import { useNavigate, useParams, useSearchParams } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import { getAnimes, getMangas } from "../redux/animeSlice";
 
 const Home = () => {
-  const [animes, setAnimes] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(""); // State for the search query
+  const params = useParams();
+  const { type } = params; // Get the type from the URL parameters
+  const [searchQuery] = useSearchParams();
+  const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState(""); // State for the search query
+  // const [animes, setAnimes] = useState([]);
+  const animes = useSelector((state) => state.anime.animes);
+  const loading = useSelector((state) => state.anime.loading);
+  const dispatch = useDispatch();
 
   const [selectedTitle, setSelectedTitle] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-  const [type, setType] = useState("anime");
   const [successToast, setSuccessToast] = useState(false);
   const ref = useRef(null);
 
-  const getAnimes = async (search) => {
-    try {
-      setLoading(true);
-      const res = await baseURL.get("/animes", {
-        headers: {
-          authorization: localStorage.getItem("authorization")
-        },
-        params: {
-          q: search
-        }
-      });
-      const data = res.data;
-      // console.log(data);
+  // const getAnimes = useCallback(, [searchQuery, dispatch]);
 
-      const uniqueTitles = new Set(); // Define the Set outside the filter function
-
-      const entries = !search
-        ? data.data
-            .flatMap((item) => item.entry)
-            .filter((entry) => {
-              if (uniqueTitles.has(entry.title)) {
-                return false; // Skip if the title already exists in the Set
-              }
-              uniqueTitles.add(entry.title); // Add the title to the Set
-              return true; // Include the entry in the filtered array
-            })
-        : data.data.map((entry) => {
-            return entry;
-          });
-
-      setAnimes(entries);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getMangas = async (search) => {
-    try {
-      setLoading(true);
-      const res = await baseURL.get("/mangas", {
-        headers: {
-          authorization: localStorage.getItem("authorization")
-        },
-        params: {
-          q: search
-        }
-      });
-      const data = res.data;
-      // console.log(data);
-
-      const uniqueTitles = new Set(); // Define the Set outside the filter function
-
-      const entries = !search
-        ? data.data
-            .flatMap((item) => item.entry)
-            .filter((entry) => {
-              if (uniqueTitles.has(entry.title)) {
-                return false; // Skip if the title already exists in the Set
-              }
-              uniqueTitles.add(entry.title); // Add the title to the Set
-              return true; // Include the entry in the filtered array
-            })
-        : data.data.map((entry) => {
-            return entry;
-          });
-
-      setAnimes(entries);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const getMangas = useCallback(, [searchQuery, dispatch]);
 
   useEffect(() => {
+    setSearch(searchQuery.get("q") || ""); // Set the search state from the URL query
     if (type === "anime") {
-      getAnimes();
+      dispatch(getAnimes(searchQuery));
     } else {
-      getMangas();
+      dispatch(getMangas(searchQuery));
     }
-  }, [type]);
+  }, [type, searchQuery, dispatch]);
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
-    if (type === "anime") getAnimes(searchQuery);
-    else getMangas(searchQuery);
+    navigate(`?q=${search}`); // Update the URL with the search query
+    // if (type === "anime") getAnimes(searchQuery);
+    // else getMangas(searchQuery);
   };
 
   // console.log(animes);
@@ -115,6 +52,8 @@ const Home = () => {
     ref.current.close();
     if (add === "add") setSuccessToast(true);
   };
+
+  // console.log(animes);
 
   return (
     <div className="min-h-screen p-6 bg-base-200 flex flex-col justify-start items-center">
@@ -161,8 +100,8 @@ const Home = () => {
           <input
             type="text"
             placeholder={`Search ${type}...`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} // Update search query state
+            value={search}
+            onChange={(e) => setSearch(e.target.value)} // Update search query state
             className="input input-bordered w-full"
           />
           <button type="submit" className="btn btn-neutral">
@@ -175,13 +114,13 @@ const Home = () => {
       <div className="flex justify-center gap-4 w-full mb-6">
         <button
           className={`btn ${type === "anime" ? "btn-active" : ""}`}
-          onClick={() => setType("anime")}
+          onClick={() => navigate("/home/anime")}
         >
           Anime
         </button>
         <button
           className={`btn ${type === "manga" ? "btn-active" : ""}`}
-          onClick={() => setType("manga")}
+          onClick={() => navigate("/home/manga")}
         >
           Manga
         </button>
@@ -190,7 +129,7 @@ const Home = () => {
       {loading ? (
         <span className="loading loading-dots loading-xl" />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
           {animes.map((anime, index) => (
             <AnimeCard
               key={index}

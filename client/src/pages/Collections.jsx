@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import baseURL from "../helpers/http";
 import CollectionCard from "../components/CollectionCard";
 import AddCollection from "../components/AddCollection";
-import Entries from "./Entries";
+import Entries from "../components/Entries";
 
 const Collections = () => {
   const [collections, setCollections] = useState([]);
@@ -11,6 +11,7 @@ const Collections = () => {
   // const { collectionId, userId } = useParams();
   const [collectionId, setCollectionId] = useState(null);
   const [entries, setEntries] = useState([]);
+  const [recommendations, setRecommendations] = useState([]); // State to hold the recommendations
 
   const ref = useRef(null);
   const ref2 = useRef(null);
@@ -60,6 +61,7 @@ const Collections = () => {
     }
   };
 
+  // Fetch entries for the selected collection
   const fetchEntries = useCallback(async () => {
     try {
       const res = await baseURL.get(`/collections/${userId}/${collectionId} `, {
@@ -72,10 +74,42 @@ const Collections = () => {
       // console.log(data);
 
       setEntries(data);
+      return data;
     } catch (error) {
       console.error(error);
     }
   }, [collectionId, userId]);
+
+  // Function to fetch the recommendation
+  const [loadRecommendations, setLoadRecommendations] = useState(false);
+
+  const fetchRecommendations = useCallback(async () => {
+    try {
+      setLoadRecommendations(true);
+      if (entries.length === 0) {
+        setRecommendations([]); // Reset recommendations if no entries
+        throw new Error("No entries found in the collection");
+      }
+
+      const res = await baseURL.get(
+        `/collections/${userId}/${collectionId}/recommendations`,
+        {
+          headers: {
+            authorization: localStorage.getItem("authorization")
+          }
+        }
+      );
+      const data = res.data;
+      // console.log(data);
+
+      setRecommendations(data.result); // Set the recommendations
+    } catch (error) {
+      console.error(error, "Fetching recommendations failed");
+      setRecommendations([]); // Reset recommendations on error
+    } finally {
+      setLoadRecommendations(false);
+    }
+  }, [collectionId, userId, entries]);
 
   const handleEdit = async ({ id, progress, completed, collectionId }) => {
     try {
@@ -100,17 +134,35 @@ const Collections = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const res = await baseURL.delete(`/entries/${collectionId}/${id}`, {
+        headers: {
+          authorization: localStorage.getItem("authorization")
+        }
+      });
+      const data = res.data;
+      console.log(data);
+
+      fetchEntries();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchCollections();
-    fetchEntries();
-  }, [fetchCollections, fetchEntries]);
+    if (collectionId) {
+      fetchEntries();
+    }
+  }, [fetchCollections, fetchEntries, collectionId]);
 
-  const openModal = async (ref, id) => {
+  const openModal = (ref, id) => {
     setCollectionId(id);
-    await fetchEntries().then(() => {
+    fetchEntries().then(() => {
       ref.current.showModal();
+      // console.log(fetched, "entries");
     });
-    // ref.current.showModal();
   };
 
   const closeModal = (ref) => {
@@ -131,6 +183,10 @@ const Collections = () => {
         entries={entries}
         collection={collections.find((element) => element.id === collectionId)}
         handleEdit={handleEdit}
+        handleDelete={handleDelete}
+        recommendations={recommendations}
+        fetchRecommendations={fetchRecommendations}
+        loadRecommendations={loadRecommendations}
       />
 
       <h1 className="text-3xl font-bold mb-6 text-center">My Collections</h1>

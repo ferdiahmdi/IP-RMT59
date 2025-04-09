@@ -6,11 +6,14 @@ const AnimeCard = ({ anime, handleClick }) => {
       className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
       onClick={handleClick}
     >
-      <figure>
+      <figure className="w-full">
         <img
-          src={anime.images.webp.image_url || "https://via.placeholder.com/150"}
+          src={
+            anime.images.webp.large_image_url ||
+            "https://via.placeholder.com/150"
+          }
           alt={anime.title || "Anime"}
-          className="w-full h-48 object-cover"
+          className="w-full h-full object-cover"
         />
       </figure>
       <div className="card-body">

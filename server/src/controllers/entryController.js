@@ -93,7 +93,10 @@ router.get(
         };
       }
 
-      const entries = await Entry.findAll({ where: { collectionId } });
+      const entries = await Entry.findAll({
+        where: { collectionId },
+        order: [["id", "ASC"]]
+      });
 
       res.status(200).json(entries);
     } catch (error) {
@@ -149,8 +152,12 @@ router.get(
         model: "gemini-2.0-flash",
         contents: `
         Can you recommend me some more anime or manga that I would like based of the following array of objects?
+
         Then, provide the recommendations in the format of an array of objects.
-        Give me only 5 recommendations. Then only put title and type in the object. The type must only be either "anime" or "manga". If the title have both types, choose "anime". If the data I provide includes both types, try to also include both types in your response. 
+        Give me only 5 recommendations. Then only put title and type in the object. The type must only be either "anime" or "manga". If the title have both types, choose "anime". 
+
+        If the data I provide includes both types (manga and anime), also include both types in your response. Else, only include the one type that is in the data I provide in your response. 
+
         There must not be any title - type combination that is already in the data I provide.
         Only output the array of objects in the response.
 
