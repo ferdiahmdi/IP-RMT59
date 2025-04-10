@@ -54,6 +54,16 @@ module.exports = (sequelize, DataTypes) => {
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE"
+      },
+      coverImage: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          isUrl: {
+            args: true,
+            msg: "Cover image must be a valid URL."
+          }
+        }
       }
     },
     {

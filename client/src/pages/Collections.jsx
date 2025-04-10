@@ -22,6 +22,10 @@ const Collections = () => {
   const loadRecommendations = useSelector(
     (state) => state.entries.recommendationsLoading
   );
+  const [loadCoverImageUpload, setLoadCoverImageUpload] = useState({
+    value: false,
+    id: null
+  });
 
   const ref = useRef(null);
   const ref2 = useRef(null);
@@ -42,7 +46,7 @@ const Collections = () => {
         }
       );
 
-      console.log(res.data);
+      console.log("Created Collection:", res.data);
 
       setNewCollectionName(""); // Clear the input field
       ref.current.close();
@@ -93,6 +97,30 @@ const Collections = () => {
     }
   };
 
+  const handlePatchCoverImage = async (event, id) => {
+    try {
+      event.preventDefault();
+      setLoadCoverImageUpload(true);
+
+      const formData = new FormData(event.target);
+      // console.log(formData.get("coverImage"));
+
+      const res = await baseURL.patch(`/collections/${id}/cover`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          authorization: localStorage.getItem("authorization")
+        }
+      });
+      console.log("Updated cover image", res.data.message);
+
+      dispatch(fetchCollections());
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadCoverImageUpload(false);
+    }
+  };
+
   useEffect(() => {
     dispatch(fetchCollections());
     if (collectionId) {
@@ -133,6 +161,7 @@ const Collections = () => {
           dispatch(fetchRecommendations(collectionId))
         }
         loadRecommendations={loadRecommendations}
+        handlePatchCoverImage={handlePatchCoverImage}
       />
 
       <h1 className="text-3xl font-bold mb-6 text-center">My Collections</h1>
@@ -142,12 +171,13 @@ const Collections = () => {
       </button>
 
       {collections.length !== 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-2">
           {collections.map((collection) => (
             <CollectionCard
               key={collection.id}
               collection={collection}
               handleClick={() => openModal(ref2, collection.id)}
+              loadCoverImageUpload={loadCoverImageUpload}
             />
           ))}
         </div>
