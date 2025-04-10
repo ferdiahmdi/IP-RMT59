@@ -11,7 +11,8 @@ const Entries = ({
   handleDelete,
   recommendations,
   fetchRecommendations,
-  loadRecommendations
+  loadRecommendations,
+  handlePatchCoverImage
 }) => {
   const [editEntry, setEditEntry] = useState(null); // State to hold the entry being edited
   const [showRecommendation, setShowRecommendation] = useState(false); // State to control the recommendation modal
@@ -39,7 +40,9 @@ const Entries = ({
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         handleClose(); // Trigger handleClose when Esc is pressed
-        setShowRecommendation(false); // Close the recommendation modal
+        setTimeout(() => {
+          setShowRecommendation(false);
+        }, 300);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -181,6 +184,33 @@ const Entries = ({
           </ul>
 
           <div className="modal-action">
+            {/* File input to upload a file */}
+            <form
+              className="flex flex-col items-start"
+              onSubmit={(event) => {
+                // console.log(event, "event.target");
+                handlePatchCoverImage(event, collection.id);
+              }}
+              encType="multipart/form-data"
+              id="coverImageForm" // Add an ID to the form for programmatic submission
+            >
+              <label htmlFor="coverImage" className="btn btn-outline">
+                Upload Cover Image
+              </label>
+              <input
+                id="coverImage"
+                type="file"
+                accept="image/*"
+                className="hidden" // Hide the default file input
+                name="coverImage"
+                onChange={(event) => {
+                  // Trigger form submission when a file is selected
+                  event.preventDefault();
+                  const form = document.getElementById("coverImageForm");
+                  form.requestSubmit(); // Programmatically submit the form
+                }}
+              />
+            </form>
             <button
               type="button"
               className="btn btn-primary"
@@ -191,8 +221,10 @@ const Entries = ({
             <button
               type="button"
               onClick={() => {
-                setShowRecommendation(false);
                 handleClose();
+                setTimeout(() => {
+                  setShowRecommendation(false);
+                }, 300);
               }}
               className="btn"
             >

@@ -2,6 +2,7 @@
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark;
 }
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 * {
   /* outline: 1px red solid; */
