@@ -1,50 +1,79 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import baseURL from "../helpers/http";
 
+const entriesSlice = createSlice({
+  name: "entries",
+  initialState: {
+    data: [],
+    recommendations: [],
+    recommendationsLoading: false
+  },
+  reducers: {
+    setEntries: (state, action) => {
+      state.data = action.payload;
+    },
+    setRecommendations: (state, action) => {
+      state.recommendations = action.payload;
+    },
+    setLoadRecommendations: (state, action) => {
+      state.recommendationsLoading = action.payload;
+    }
+  }
+});
+
+export const { setEntries, setRecommendations, setLoadRecommendations } =
+  entriesSlice.actions;
+export const entriesReducer = entriesSlice.reducer;
+
 export const fetchEntries = createAsyncThunk(
   "entries/fetchEntries",
-  async ({ userId, collectionId }, { rejectWithValue }) => {
+  async (collectionId, { dispatch }) => {
     try {
+      const userId = localStorage.getItem("userId");
       const response = await baseURL.get(
         `/collections/${userId}/${collectionId}`,
         {
           headers: { authorization: localStorage.getItem("authorization") }
         }
       );
-      return response.data;
+
+      dispatch(setEntries(response.data));
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      console.error(error);
     }
   }
 );
 
-const entriesSlice = createSlice({
-  name: "entries",
-  initialState: {
-    data: [],
-    status: "idle",
-    error: null
-  },
-  reducers: {
-    clearEntries: (state) => {
-      state.data = [];
-    }
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchEntries.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(fetchEntries.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.data = action.payload;
-      })
-      .addCase(fetchEntries.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload;
-      });
-  }
-});
+export const fetchRecommendations = createAsyncThunk(
+  "entries/fetchRecommendations",
+  async (collectionId, { dispatch, getState }) => {
+    try {
+      dispatch(setLoadRecommendations(true));
+      const userId = localStorage.getItem("userId");
+      const entries = getState().entries.data;
 
-export const { clearEntries } = entriesSlice.actions;
-export default entriesSlice.reducer;
+      if (entries.length === 0) {
+        setRecommendations([]); // Reset recommendations if no entries
+        throw new Error("No entries found in the collection");
+      }
+
+      const res = await baseURL.get(
+        `/collections/${userId}/${collectionId}/recommendations`,
+        {
+          headers: {
+            authorization: localStorage.getItem("authorization")
+          }
+        }
+      );
+      const data = res.data;
+      // console.log(data);
+
+      dispatch(setRecommendations(data.result));
+    } catch (error) {
+      console.error(error, "Fetching recommendations failed");
+      setRecommendations([]); // Reset recommendations on error
+    } finally {
+      dispatch(setLoadRecommendations(false));
+    }
+  }
+);

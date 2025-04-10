@@ -39,7 +39,9 @@ const Entries = ({
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         handleClose(); // Trigger handleClose when Esc is pressed
-        setShowRecommendation(false); // Close the recommendation modal
+        setTimeout(() => {
+          setShowRecommendation(false);
+        }, 300);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -191,8 +193,10 @@ const Entries = ({
             <button
               type="button"
               onClick={() => {
-                setShowRecommendation(false);
                 handleClose();
+                setTimeout(() => {
+                  setShowRecommendation(false);
+                }, 300);
               }}
               className="btn"
             >
