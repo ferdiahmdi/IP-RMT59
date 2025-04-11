@@ -29,13 +29,10 @@ export const fetchEntries = createAsyncThunk(
   "entries/fetchEntries",
   async (collectionId, { dispatch }) => {
     try {
-      const userId = localStorage.getItem("userId");
-      const response = await baseURL.get(
-        `/collections/${userId}/${collectionId}`,
-        {
-          headers: { authorization: localStorage.getItem("authorization") }
-        }
-      );
+      const response = await baseURL.get(`/collections/${collectionId}`, {
+        headers: { authorization: localStorage.getItem("authorization") }
+      });
+      // console.log(response.data);
 
       dispatch(setEntries(response.data));
     } catch (error) {
@@ -49,7 +46,6 @@ export const fetchRecommendations = createAsyncThunk(
   async (collectionId, { dispatch, getState }) => {
     try {
       dispatch(setLoadRecommendations(true));
-      const userId = localStorage.getItem("userId");
       const entries = getState().entries.data;
 
       if (entries.length === 0) {
@@ -58,7 +54,7 @@ export const fetchRecommendations = createAsyncThunk(
       }
 
       const res = await baseURL.get(
-        `/collections/${userId}/${collectionId}/recommendations`,
+        `/collections/${collectionId}/recommendations`,
         {
           headers: {
             authorization: localStorage.getItem("authorization")

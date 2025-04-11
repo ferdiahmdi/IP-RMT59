@@ -15,13 +15,11 @@ const EntryForm = ({
   const [completed, setCompleted] = useState(false);
   const [collectionId, setCollectionId] = useState(null);
 
-  const userId = localStorage.getItem("userId");
-
   // if (entry) console.log(entry);
 
   const getCollections = useCallback(async () => {
     try {
-      const res = await baseURL.get(`/collections/${userId}`, {
+      const res = await baseURL.get(`/collections`, {
         headers: {
           authorization: localStorage.getItem("authorization")
         }
@@ -34,7 +32,7 @@ const EntryForm = ({
     } catch (error) {
       console.error(error);
     }
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     getCollections();

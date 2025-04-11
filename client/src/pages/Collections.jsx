@@ -10,9 +10,11 @@ import {
   fetchRecommendations,
   setRecommendations
 } from "../redux/entriesSlice";
+import { useNavigate } from "react-router";
 
 const Collections = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const collections = useSelector((state) => state.collections.data);
   const [newCollectionName, setNewCollectionName] = useState("");
 
@@ -30,15 +32,13 @@ const Collections = () => {
   const ref = useRef(null);
   const ref2 = useRef(null);
 
-  const userId = localStorage.getItem("userId");
-
   // Create a new collection
   const createCollection = async (event) => {
     event.preventDefault();
     try {
       const res = await baseURL.post(
         "/collections",
-        { name: newCollectionName, userId },
+        { name: newCollectionName },
         {
           headers: {
             authorization: localStorage.getItem("authorization")
@@ -122,11 +122,16 @@ const Collections = () => {
   };
 
   useEffect(() => {
+    if (!localStorage.getItem("authorization")) {
+      console.error("No authorization token found");
+      navigate("/login");
+    }
+
     dispatch(fetchCollections());
     if (collectionId) {
       fetchEntries(collectionId);
     }
-  }, [dispatch, collectionId]);
+  }, [dispatch, collectionId, navigate]);
 
   const openModal = (ref, id) => {
     setCollectionId(id);
