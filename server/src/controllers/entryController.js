@@ -68,11 +68,12 @@ router.post("/entries", authMiddleware, async (req, res, next) => {
 
 // Get all entries for a collection
 router.get(
-  "/collections/:userId/:collectionId",
+  "/collections/:collectionId",
   authMiddleware,
   async (req, res, next) => {
     try {
-      const { userId, collectionId } = req.params;
+      const { collectionId } = req.params;
+      const userId = req.user.id;
 
       const user = await User.findByPk(userId);
       if (!user) {
@@ -107,11 +108,12 @@ router.get(
 
 // Generate recommendations from Google GenAI model by providing entries that are fetched from a collection in the database
 router.get(
-  "/collections/:userId/:collectionId/recommendations",
+  "/collections/:collectionId/recommendations",
   authMiddleware,
   async (req, res, next) => {
     try {
-      const { userId, collectionId } = req.params;
+      const { collectionId } = req.params;
+      const userId = req.user.id;
 
       const user = await User.findByPk(userId);
       if (!user) {

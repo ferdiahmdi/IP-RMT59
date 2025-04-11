@@ -22,10 +22,6 @@ createRoot(document.getElementById("root")).render(
           <Route path="/home/:type" element={<Home />} />
 
           <Route path="/collections" element={<Collections />} />
-          <Route
-            path="/collections/:userId/:collectionId"
-            element={<Entries />}
-          />
         </Route>
       </Routes>
     </Provider>

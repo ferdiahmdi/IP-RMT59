@@ -11,8 +11,9 @@ const { authMiddleware } = require("../middlewares/authMiddleware");
 // Create a new collection
 router.post("/collections", authMiddleware, async (req, res, next) => {
   try {
-    const { name, userId } = req.body;
-
+    const { name } = req.body;
+    const userId = req.user.id;
+    // console.log(req.user.id);
     // Check if the user exists
     const user = await User.findByPk(userId);
     if (!user) {
@@ -68,9 +69,9 @@ router.patch(
 );
 
 // Get all collections for a user
-router.get("/collections/:userId", authMiddleware, async (req, res, next) => {
+router.get("/collections/", authMiddleware, async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user.id;
 
     // Check if the user exists
     const user = await User.findByPk(userId);
@@ -84,10 +85,14 @@ router.get("/collections/:userId", authMiddleware, async (req, res, next) => {
     const collections = await Collection.findAll({
       where: { userId },
       include: Entry,
-      order: [["id", "asc"]]
+      order: [["id", "asc"]],
+      attributes: {
+        exclude: ["createdAt", "updatedAt"]
+      }
     });
     if (!collections) {
       throw {
+        name: "NotFound",
         statusCode: 404,
         message: "Collections not found"
       };

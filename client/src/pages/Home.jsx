@@ -27,6 +27,11 @@ const Home = () => {
   // const getMangas = useCallback(, [searchQuery, dispatch]);
 
   useEffect(() => {
+    if (!localStorage.getItem("authorization")) {
+      console.error("No authorization token found");
+      navigate("/login");
+    }
+
     setSearch(searchQuery.get("q") || ""); // Set the search state from the URL query
     if (type === "anime") {
       dispatch(getAnimes(searchQuery));

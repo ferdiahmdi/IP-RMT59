@@ -17,8 +17,7 @@ export const fetchCollections = createAsyncThunk(
   "collections/fetchCollections",
   async (_, { dispatch }) => {
     try {
-      const userId = localStorage.getItem("userId");
-      const response = await baseURL.get(`/collections/${userId}`, {
+      const response = await baseURL.get(`/collections`, {
         headers: { authorization: localStorage.getItem("authorization") }
       });
       // console.log(response.data);
